@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+##
+# Description: Push bullet for your terminal
+# Date: 2017-01-18
+# Written by:
+#   Blake Knight <oss.ideas@gmail.com> (http://blakek.me/)
+##
+
+help=$(cat <<END
+Usage: stree [-c|--create] [-h|--help] [directory]
+Positional arguments:
+	directory       the direcotry to open in SourceTree (default: ".")
+Switch arguments:
+	-c, --create    prompt to create a repo if it does not already exist
+	-h, --help      show this help text
+END)
+
+
+showUsage() {
+	echo 'Usage: push-bullet [title] [body]'
+	echo
+	echo 'Positional arguments:'
+	echo '  title     Title of note'
+	echo '  body      Body contents of note'
+	echo
+	echo 'Examples:'
+	echo '  Send a note:'
+	echo '    $ push-bullet '"'Hello, World' 'This is my cool note body'"''
+	echo
+	echo '  Send result of another command:'
+	echo '    $ sleep $(( 60 * 4 )) && echo '"'Tea is done'"' | push-bullet'
+}
+
+showNoTokenError() {
+	echo 'Error: No Pushbullet token found.' >&2
+	echo 'Create an access token here: https://www.pushbullet.com/#settings/account' >&2
+	echo 'Then, set that token to then environment variable `PUSHBULLET_TOKEN`.' >&2
+}
+
+main() {
+	declare title="${1:-}" body="${2:-}"
+
+	# Show usage if asked
+	if [[ "${title}" == "-h" || "${title}" == "--help" || "${title}" == "help" ]]; then
+		showUsage
+		exit
+	fi
+
+	# Require API token
+	if [ -z "${PUSHBULLET_TOKEN}" ]; then
+		showNoTokenError
+		exit 1
+	fi
+
+	# If stdin has contents, let's use that for the note body.
+	if [ ! -t 0 ]; then
+		body=$(< /dev/stdin)
+	fi
+
+	# Let Pushbullet work it's magic
+	curl \
+		--silent \
+		-u "${PUSHBULLET_TOKEN}" \
+		-d type="note" \
+		-d body="${body}" \
+		-d title="${title}" \
+		'https://api.pushbullet.com/v2/pushes' > /dev/null
+}
+
+main "$@"
