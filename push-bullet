@@ -8,16 +8,6 @@ set -eu -o pipefail
 #   Blake Knight <oss.ideas@gmail.com> (http://blakek.me/)
 ##
 
-help=$(cat <<END
-Usage: stree [-c|--create] [-h|--help] [directory]
-Positional arguments:
-	directory       the direcotry to open in SourceTree (default: ".")
-Switch arguments:
-	-c, --create    prompt to create a repo if it does not already exist
-	-h, --help      show this help text
-END)
-
-
 showUsage() {
 	echo 'Usage: push-bullet [title] [body]'
 	echo
